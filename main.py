@@ -12,14 +12,14 @@ NAVE_INIMIGA = carregar_sprite("nave2.png")
 TIRO = carregar_sprite("tiro.png")
 BRANCO = 255,255,255
 
-ATIRANDO = carregar_audio("atirando.mp3")
-NAVE_DESTRUIDA_SOM = carregar_audio("nave-destruida.mp3")
-pygame.mixer.music.load('assets/sfx/soundtrack.mp3')
-pygame.mixer.music.set_volume(0.5)
-
 LARGURA, ALTURA = ESPACO.get_width(), ESPACO.get_height()
 WIN = pygame.display.set_mode((LARGURA, ALTURA))
 pygame.display.set_caption("Galactic Red")
+
+TIRO_SOM = carregar_audio("atirando.wav")
+NAVE_DESTRUIDA_SOM = carregar_audio("nave-destruida.wav")
+pygame.mixer.music.load('assets/sfx/soundtrack.mp3')
+pygame.mixer.music.set_volume(0.5)
 
 FPS = 60
 
@@ -100,9 +100,10 @@ class Player(Nave):
             self.y += self.vel
 
     def atirar(self):
-        ATIRANDO.play()
         tiro = Tiro((self.x + self.sprite.get_width()/2), self.y)
         self.tiros.append(tiro)
+        TIRO_SOM.play()
+        
 
     def move_tiros(self, vel, objs):
         for tiro in self.tiros:
@@ -175,13 +176,13 @@ class MenuInicial:
 def collide(obj1, obj2):
     offset_x = obj2.x - obj1.x
     offset_y = obj2.y - obj1.y
-    return obj1.mask.overlap(obj2.mask, (offset_x, offset_y)) != None
+    return obj1.mask.overlap(obj2.mask, (int(offset_x), int(offset_y))) != None
 
 def draw_menu(win, menu, botao):
         menu.draw(win)
         texto_botao = criar_texto("Jogar","lucidasans",25,BRANCO)
-        pygame.draw.rect(win, (255,0,0), botao , 0,10)
-        pygame.draw.rect(win, BRANCO, botao , 2,10)
+        pygame.draw.rect(win, (255,0,0), botao , 0)
+        pygame.draw.rect(win, BRANCO, botao , 2)
         win.blit(texto_botao, (110 - texto_botao.get_width()/2, 565 - texto_botao.get_height()/2))
         pygame.display.update()
 
@@ -204,9 +205,9 @@ def draw(win, cenario, player):
 
     apresentar(WIN, texto_pontos, (10, 5))
     apresentar(WIN, texto_vidas, (10, 35))
-    pygame.draw.rect(win, (255,0,0), vida_borda,0,5)
-    pygame.draw.rect(win, (0,255,0), vida_rect,0,5)
-    pygame.draw.rect(win, BRANCO, vida_borda,1,5)
+    pygame.draw.rect(win, (255,0,0), vida_borda,0)
+    pygame.draw.rect(win, (0,255,0), vida_rect,0)
+    pygame.draw.rect(win, BRANCO, vida_borda,1)
 
     if perdeu:
         apresentar(WIN, texto_game_over,(LARGURA/2 - texto_game_over.get_width()/2,
@@ -270,16 +271,16 @@ while run:
 
         if vidas <= 0 or player.vida <= 0:
             if player.vida <= 0 and perdeu_tempo == 0:
-                NAVE_DESTRUIDA_SOM.play()
                 player.sprite = NAVE_DESTRUIDA
+                NAVE_DESTRUIDA_SOM.play()
             perdeu = True
             perdeu_tempo += 1
 
         if perdeu:
             pygame.mixer.music.stop()
-            inimigos.clear()
-            player.tiros.clear()
-            meteoros.clear()
+            inimigos *= 0
+            player.tiros *= 0
+            meteoros *= 0
             if perdeu_tempo > FPS * 5:
                 game_running = False
                 menu_running = True
@@ -297,7 +298,7 @@ while run:
             if nivel >= 2:
                 if len(meteoros) == 0:
                     if random.randrange(0, 2) == 1:
-                        meteoro = Meteoro(random.choice([-200, LARGURA]), -150)
+                        meteoro = Meteoro(random.choice([-200, LARGURA]), 150)
                         meteoros.append(meteoro)
 
         for event in pygame.event.get():
